@@ -1,0 +1,24 @@
+{
+  "name": "Buddy",
+  "columns": 6,
+  "rows": 6,
+  "fps": 8,
+  "scale": 1,
+  "facing": "right",
+  "rows_map": {
+    "walk": 1,
+    "sad_walk": 2,
+    "idle": 3,
+    "happy": 4,
+    "sad": 5,
+    "drinking": 6
+  },
+  "frames_per_row": {
+    "walk": 6,
+    "sad_walk": 6,
+    "idle": 6,
+    "happy": 6,
+    "sad": 6,
+    "drinking": 6
+  }
+}

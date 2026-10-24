@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+  <title>Remind Buddy</title>
+  <link rel="stylesheet" href="overlay.css">
+</head>
+<body>
+  <main class="overlay-stage" id="stage" aria-label="Remind Buddy reminder">
+    <div class="status-pill" id="status-pill" hidden></div>
+
+    <div class="actor" id="actor">
+      <div class="mascot" id="mascot" data-state="hidden" data-mood="idle" data-facing="right" data-mirrored="false" data-row="1" data-frame="1" data-frame-rate="8" data-character-id="buddy">
+        <div class="mascot-shadow" aria-hidden="true"></div>
+        <div class="flipper">
+          <canvas class="mascot-canvas" id="mascot-canvas" width="209" height="209" role="img" aria-label="Reminder character"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <section class="speech-bubble" id="bubble" hidden aria-live="polite" aria-labelledby="bubble-title">
+      <header class="bubble-header">
+        <span class="bubble-icon" id="bubble-icon" aria-hidden="true">🔔</span>
+        <div class="bubble-heading">
+          <p class="bubble-kicker" id="bubble-kicker">Reminder</p>
+          <h1 id="bubble-title">Reminder</h1>
+        </div>
+      </header>
+
+      <p class="bubble-note" id="bubble-note" hidden></p>
+
+      <div class="timer-block" id="timer-block" hidden>
+        <div class="timer-row">
+          <span class="timer-value" id="timer-value">10:00</span>
+          <span class="timer-label" id="timer-label">Time left</span>
+        </div>
+        <div class="progress-track"><span class="progress-fill" id="timer-fill"></span></div>
+      </div>
+
+      <div class="bubble-actions" id="bubble-actions"></div>
+
+      <div class="wait-row" id="wait-row" hidden>
+        <div class="progress-track"><span class="progress-fill" id="wait-fill"></span></div>
+        <span class="wait-label" id="wait-label">I'll wait a minute</span>
+      </div>
+
+      <footer class="bubble-footer" id="bubble-footer" hidden>
+        <span class="footer-chip" id="queue-chip" hidden></span>
+        <span class="footer-chip footer-chip-test" id="test-chip" hidden>Test preview · not logged</span>
+      </footer>
+    </section>
+  </main>
+  <audio id="chime" preload="auto"></audio>
+  <script src="character-engine.js"></script>
+  <script src="overlay.js"></script>
+</body>
+</html>

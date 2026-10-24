@@ -1,0 +1,717 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+  <title>Remind Buddy</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <img class="brand-icon" src="../assets/icon.png" alt="" width="42" height="42">
+        <div class="brand-copy">
+          <strong>Remind Buddy</strong>
+          <span>Little nudges, right on time.</span>
+        </div>
+      </div>
+
+      <button class="quick-add-button" id="sidebar-quick-add" type="button">
+        <span class="quick-add-plus" aria-hidden="true">+</span>
+        <span>Quick add</span>
+        <kbd id="quick-add-shortcut">Ctrl+Alt+R</kbd>
+      </button>
+
+      <nav class="tabs" role="tablist" aria-label="Remind Buddy sections">
+        <button class="tab-button active" id="tab-reminders" type="button" role="tab" aria-selected="true" aria-controls="panel-reminders" data-tab="reminders">
+          <span class="tab-icon" aria-hidden="true">🗂️</span><span>Reminders</span><span class="tab-count" id="tab-count-reminders"></span>
+        </button>
+        <button class="tab-button" id="tab-today" type="button" role="tab" aria-selected="false" aria-controls="panel-today" data-tab="today">
+          <span class="tab-icon" aria-hidden="true">☀️</span><span>Today</span>
+        </button>
+        <button class="tab-button" id="tab-history" type="button" role="tab" aria-selected="false" aria-controls="panel-history" data-tab="history">
+          <span class="tab-icon" aria-hidden="true">📈</span><span>History</span>
+        </button>
+        <button class="tab-button" id="tab-characters" type="button" role="tab" aria-selected="false" aria-controls="panel-characters" data-tab="characters">
+          <span class="tab-icon" aria-hidden="true">🎭</span><span>Characters</span>
+        </button>
+        <button class="tab-button" id="tab-style" type="button" role="tab" aria-selected="false" aria-controls="panel-style" data-tab="style">
+          <span class="tab-icon" aria-hidden="true">💬</span><span>Messages &amp; style</span>
+        </button>
+        <button class="tab-button" id="tab-settings" type="button" role="tab" aria-selected="false" aria-controls="panel-settings" data-tab="settings">
+          <span class="tab-icon" aria-hidden="true">⚙️</span><span>Settings</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="pause-card" id="pause-card">
+          <div class="pause-heading">
+            <span class="presence-dot" id="presence-dot" aria-hidden="true"></span>
+            <strong id="pause-title">Reminders on</strong>
+          </div>
+          <p class="pause-detail" id="pause-detail">Preparing the schedule…</p>
+          <div class="pause-actions" id="pause-actions">
+            <button type="button" data-pause="30">30 min</button>
+            <button type="button" data-pause="60">1 hour</button>
+            <button type="button" data-pause="tomorrow">Tomorrow</button>
+          </div>
+          <button class="resume-button" id="resume-button" type="button" hidden>Resume reminders</button>
+          <p class="dnd-note" id="dnd-note" hidden>Do Not Disturb is active.</p>
+        </div>
+        <div class="sidebar-meta">
+          <span id="app-version">Remind Buddy</span>
+          <button class="text-button" id="open-data-folder" type="button">Data folder</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-column">
+      <header class="topbar">
+        <div class="topbar-copy">
+          <p class="eyebrow" id="tab-eyebrow">Plan</p>
+          <h1 id="tab-title">Reminders</h1>
+          <p id="tab-subtitle">Everything you want a gentle nudge about.</p>
+        </div>
+        <div class="topbar-status" id="topbar-status">
+          <span class="status-pill" id="next-pill">Schedule loading…</span>
+          <span class="status-chip" id="overlay-chip" hidden></span>
+        </div>
+      </header>
+
+      <div class="notice" id="global-notice" role="alert" hidden></div>
+
+      <div class="panel-stack">
+        <section class="tab-panel" id="panel-reminders" role="tabpanel" aria-labelledby="tab-reminders" data-panel="reminders">
+          <div class="panel-toolbar">
+            <label class="search-field" for="reminder-search">
+              <span class="search-icon" aria-hidden="true">⌕</span>
+              <input id="reminder-search" type="search" placeholder="Search reminders" autocomplete="off">
+            </label>
+            <label class="filter-field">
+              <span class="sr-only">Category filter</span>
+              <select id="category-filter">
+                <option value="">All categories</option>
+              </select>
+            </label>
+            <span class="toolbar-hint" id="reorder-hint">Drag rows to reorder</span>
+            <button class="primary-button" id="add-reminder" type="button">Add reminder</button>
+          </div>
+
+          <div class="stat-strip" id="reminder-stats"></div>
+          <div class="reminder-list" id="reminder-list" aria-live="polite"></div>
+          <div class="empty-state" id="reminder-empty" hidden>
+            <div class="empty-art" aria-hidden="true">🔔</div>
+            <h2>No reminders here yet</h2>
+            <p>Start with a template, then make it yours.</p>
+            <button class="primary-button" id="empty-add-reminder" type="button">Browse templates</button>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="panel-today" role="tabpanel" aria-labelledby="tab-today" data-panel="today" hidden>
+          <div id="today-hero"></div>
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Progress</p>
+              <h2>Today's goals</h2>
+            </div>
+            <button class="quiet-button" type="button" data-nav="reminders">Manage reminders</button>
+          </div>
+          <div class="goal-grid" id="today-goals"></div>
+          <div class="today-columns">
+            <section class="card timeline-card">
+              <div class="card-heading">
+                <div><p class="eyebrow">Already happened</p><h2>Earlier today</h2></div>
+                <button class="text-button" type="button" data-nav="history">Full history</button>
+              </div>
+              <div class="timeline" id="today-events"></div>
+            </section>
+            <section class="card timeline-card">
+              <div class="card-heading">
+                <div><p class="eyebrow">Still to come</p><h2>Later today</h2></div>
+              </div>
+              <div class="timeline" id="today-upcoming"></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="panel-history" role="tabpanel" aria-labelledby="tab-history" data-panel="history" hidden>
+          <div class="panel-toolbar history-toolbar">
+            <label class="filter-field">
+              <span class="sr-only">Reminder filter</span>
+              <select id="history-reminder"><option value="">All reminders</option></select>
+            </label>
+            <label class="filter-field">
+              <span class="sr-only">Date range</span>
+              <select id="history-range">
+                <option value="7">Last 7 days</option>
+                <option value="30" selected>Last 30 days</option>
+                <option value="90">Last 90 days</option>
+                <option value="all">All time</option>
+              </select>
+            </label>
+            <div class="outcome-filters" id="history-outcomes" role="group" aria-label="Response filters">
+              <label class="outcome-chip" data-outcome-chip="done"><input type="checkbox" value="done" checked><span>Done</span></label>
+              <label class="outcome-chip" data-outcome-chip="skipped"><input type="checkbox" value="skipped" checked><span>Skipped</span></label>
+              <label class="outcome-chip" data-outcome-chip="snoozed"><input type="checkbox" value="snoozed" checked><span>Snoozed</span></label>
+              <label class="outcome-chip" data-outcome-chip="ignored"><input type="checkbox" value="ignored" checked><span>Ignored</span></label>
+              <label class="outcome-chip" data-outcome-chip="missed"><input type="checkbox" value="missed" checked><span>Missed</span></label>
+            </div>
+            <div class="toolbar-spacer"></div>
+            <button class="quiet-button" id="history-export" type="button">Export CSV</button>
+            <button class="primary-button" id="history-refresh" type="button">Refresh</button>
+          </div>
+          <div class="stat-strip" id="history-stats"></div>
+          <div class="history-charts">
+            <section class="card chart-card">
+              <div class="card-heading"><div><p class="eyebrow">Last 7 days</p><h2>Daily responses</h2></div><span class="chart-total" id="history-7-total"></span></div>
+              <div class="bar-chart" id="history-chart-7" role="img" aria-label="Responses over the last seven days"></div>
+            </section>
+            <section class="card chart-card">
+              <div class="card-heading"><div><p class="eyebrow">Last 30 days</p><h2>Daily responses</h2></div><span class="chart-total" id="history-30-total"></span></div>
+              <div class="bar-chart compact" id="history-chart-30" role="img" aria-label="Responses over the last thirty days"></div>
+            </section>
+            <section class="card streak-card">
+              <div>
+                <p class="eyebrow">Current streak</p>
+                <div class="streak-value" id="history-streak">—</div>
+                <p class="streak-copy" id="history-streak-copy">Pick a reminder to see its streak.</p>
+              </div>
+              <div class="streak-flame" aria-hidden="true">🔥</div>
+            </section>
+          </div>
+          <section class="card history-table-card">
+            <div class="card-heading">
+              <div><p class="eyebrow">Every answer</p><h2>Response log</h2></div>
+              <span class="table-note" id="history-total-note"></span>
+            </div>
+            <div class="table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Reminder</th><th>Response</th><th>When</th><th>Source</th><th>Details</th></tr></thead>
+                <tbody id="history-table-body"></tbody>
+              </table>
+            </div>
+            <div class="empty-state compact" id="history-empty" hidden>
+              <div class="empty-art" aria-hidden="true">📈</div>
+              <h2>No responses in this range</h2>
+              <p>Answer a reminder and it will show up here.</p>
+            </div>
+          </section>
+        </section>
+
+        <section class="tab-panel" id="panel-characters" role="tabpanel" aria-labelledby="tab-characters" data-panel="characters" hidden>
+          <div class="panel-toolbar">
+            <span class="toolbar-hint">Sheets live in the app data folder. Drop in a folder with sheet.png and character.json.</span>
+            <div class="toolbar-spacer"></div>
+            <button class="quiet-button" id="open-characters-folder" type="button">Open folder</button>
+            <button class="quiet-button" id="rescan-characters" type="button">Rescan</button>
+            <button class="primary-button" id="add-character" type="button">Add character</button>
+          </div>
+          <div class="character-options card">
+            <div class="character-size-field">
+              <label class="field-label" for="character-size">Default character size</label>
+              <div class="range-row">
+                <input id="character-size" type="range" min="50" max="200" step="5" value="100">
+                <span id="character-size-value">100%</span>
+              </div>
+              <p class="field-help">Per-reminder sizes multiply this base size. Very large sizes get more room automatically.</p>
+            </div>
+            <label class="switch-row" for="random-character">
+              <span class="switch-copy"><span class="switch-title">Surprise me</span><span class="switch-help">Pick a different usable character for each reminder.</span></span>
+              <input id="random-character" type="checkbox" role="switch">
+              <span class="switch-ui" aria-hidden="true"></span>
+            </label>
+          </div>
+          <div class="notice" id="character-warnings" role="status" hidden></div>
+          <div class="character-grid" id="character-grid"></div>
+        </section>
+
+        <section class="tab-panel" id="panel-style" role="tabpanel" aria-labelledby="tab-style" data-panel="style" hidden>
+          <div class="style-grid">
+            <section class="card">
+              <div class="card-heading"><div><p class="eyebrow">Look &amp; feel</p><h2>Theme</h2></div></div>
+              <div class="theme-options" role="radiogroup" aria-label="Theme">
+                <label class="theme-option"><input type="radio" name="theme" value="system"><span class="theme-swatch theme-system"></span><span><strong>System</strong><small>Follow the device</small></span></label>
+                <label class="theme-option"><input type="radio" name="theme" value="light"><span class="theme-swatch theme-light"></span><span><strong>Light</strong><small>Bright and airy</small></span></label>
+                <label class="theme-option"><input type="radio" name="theme" value="dark"><span class="theme-swatch theme-dark"></span><span><strong>Dark</strong><small>Easy at night</small></span></label>
+              </div>
+              <label class="field">
+                <span class="field-label">Language</span>
+                <select id="style-language">
+                  <option value="system">System language</option>
+                  <option value="en">English</option>
+                  <option value="de">Deutsch</option>
+                  <option value="es">Español</option>
+                  <option value="fr">Français</option>
+                  <option value="pt">Português</option>
+                  <option value="ja">日本語</option>
+                </select>
+                <span class="field-help">Used for dates, times, and number formatting. Reminder text stays exactly as you wrote it.</span>
+              </label>
+              <div class="tip-box">
+                <strong>Reactions adapt to every reminder.</strong>
+                <p>Positive answers cheer and walk right, negative answers look sad and walk left, snoozes wave goodbye, and skips tip their hat.</p>
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="card-heading"><div><p class="eyebrow">Fallback voice</p><h2>Global default messages</h2></div></div>
+              <p class="card-copy">When a reminder leaves its reaction or snooze text blank, these lines fill the gap. One variation per line.</p>
+              <div class="placeholder-help" aria-label="Available placeholders">
+                <code>{title}</code><code>{note}</code><code>{date}</code><code>{weekday}</code><code>{snooze}</code><code>{count}</code>
+              </div>
+              <form id="global-messages-form" class="stack-form" novalidate>
+                <label class="field"><span class="field-label">Positive reaction</span><textarea id="global-positive" rows="2"></textarea></label>
+                <label class="field"><span class="field-label">Negative reaction</span><textarea id="global-negative" rows="2"></textarea></label>
+                <label class="field"><span class="field-label">Neutral reaction</span><textarea id="global-neutral" rows="2"></textarea></label>
+                <label class="field"><span class="field-label">Snooze reaction</span><textarea id="global-snooze" rows="2"></textarea></label>
+                <label class="field"><span class="field-label">Skipped-until-tomorrow text</span><textarea id="global-skipped" rows="2"></textarea></label>
+                <div class="form-actions">
+                  <span class="form-status" id="global-messages-status"></span>
+                  <button class="primary-button" type="submit">Save default messages</button>
+                </div>
+              </form>
+            </section>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="panel-settings" role="tabpanel" aria-labelledby="tab-settings" data-panel="settings" hidden>
+          <form id="settings-form" class="settings-form" novalidate>
+            <div class="settings-grid">
+              <section class="card">
+                <div class="card-heading"><div><p class="eyebrow">How reminders arrive</p><h2>Prompts &amp; overlay</h2></div></div>
+                <label class="switch-row" for="setting-overlay-enabled">
+                  <span class="switch-copy"><span class="switch-title">Show the walking overlay</span><span class="switch-help">The character walks in and asks in a speech bubble.</span></span>
+                  <input id="setting-overlay-enabled" type="checkbox" role="switch">
+                  <span class="switch-ui" aria-hidden="true"></span>
+                </label>
+                <label class="switch-row" for="setting-notify-fallback">
+                  <span class="switch-copy"><span class="switch-title">Use an OS notification instead</span><span class="switch-help">Falls back if the overlay is off or cannot appear.</span></span>
+                  <input id="setting-notify-fallback" type="checkbox" role="switch">
+                  <span class="switch-ui" aria-hidden="true"></span>
+                </label>
+                <label class="switch-row" for="setting-skip-fullscreen">
+                  <span class="switch-copy"><span class="switch-title">Skip fullscreen apps</span><span class="switch-help">High-priority reminders still appear.</span></span>
+                  <input id="setting-skip-fullscreen" type="checkbox" role="switch">
+                  <span class="switch-ui" aria-hidden="true"></span>
+                </label>
+                <div class="form-grid two">
+                  <label class="field"><span class="field-label">Show reminders on</span>
+                    <select id="setting-display">
+                      <option value="cursor">Cursor's display</option>
+                      <option value="primary">Primary display</option>
+                      <option value="all">All displays</option>
+                    </select>
+                  </label>
+                  <label class="field"><span class="field-label">When a reminder was missed</span>
+                    <select id="setting-missed-policy">
+                      <option value="show">Show late, as missed</option>
+                      <option value="skip">Skip it</option>
+                    </select>
+                  </label>
+                  <label class="field"><span class="field-label">Default wait before timeout</span>
+                    <div class="inline-field"><input id="setting-timeout" type="number" min="10" max="600" step="5"><span>sec</span></div>
+                  </label>
+                  <label class="field"><span class="field-label">If I don't answer</span>
+                    <select id="setting-timeout-action">
+                      <option value="negative">Treat it as No</option>
+                      <option value="snooze">Snooze it</option>
+                      <option value="dismiss">Dismiss silently</option>
+                    </select>
+                  </label>
+                </div>
+              </section>
+
+              <section class="card">
+                <div class="card-heading"><div><p class="eyebrow">Sound</p><h2>Chimes &amp; volume</h2></div></div>
+                <label class="switch-row" for="setting-sound-enabled">
+                  <span class="switch-copy"><span class="switch-title">Play a sound when a reminder arrives</span><span class="switch-help">Per-reminder choices can override this.</span></span>
+                  <input id="setting-sound-enabled" type="checkbox" role="switch">
+                  <span class="switch-ui" aria-hidden="true"></span>
+                </label>
+                <label class="field">
+                  <span class="field-label">Volume</span>
+                  <div class="range-row"><input id="setting-sound-volume" type="range" min="0" max="100" step="5"><span id="setting-sound-volume-value">60%</span></div>
+                </label>
+                <div class="tip-box">
+                  <strong>Character sounds</strong>
+                  <p>Pick the built-in chime, silence, or a custom file on each reminder. Custom sounds are copied into your app data folder.</p>
+                </div>
+              </section>
+
+              <section class="card">
+                <div class="card-heading"><div><p class="eyebrow">Windows &amp; startup</p><h2>Keep it in the background</h2></div></div>
+                <label class="switch-row" for="setting-start-at-login">
+                  <span class="switch-copy"><span class="switch-title">Start Remind Buddy at login</span><span class="switch-help" id="startup-help">Runs quietly in the tray.</span></span>
+                  <input id="setting-start-at-login" type="checkbox" role="switch">
+                  <span class="switch-ui" aria-hidden="true"></span>
+                </label>
+                <label class="switch-row" for="setting-start-minimized">
+                  <span class="switch-copy"><span class="switch-title">Start minimized to tray</span><span class="switch-help">No window on launch; reminders still arrive.</span></span>
+                  <input id="setting-start-minimized" type="checkbox" role="switch">
+                  <span class="switch-ui" aria-hidden="true"></span>
+                </label>
+                <label class="field">
+                  <span class="field-label">Global quick-add shortcut</span>
+                  <input id="setting-quick-add" type="text" spellcheck="false" placeholder="CommandOrControl+Alt+R">
+                  <span class="field-help">Electron accelerator format, for example CommandOrControl+Alt+R.</span>
+                </label>
+                <p class="inline-status" id="shortcut-status"></p>
+              </section>
+
+              <section class="card">
+                <div class="card-heading"><div><p class="eyebrow">Quiet hours</p><h2>Do Not Disturb</h2></div></div>
+                <label class="switch-row" for="setting-dnd-enabled">
+                  <span class="switch-copy"><span class="switch-title">Enable a nightly quiet window</span><span class="switch-help">Reminders that allow it wait until the window ends.</span></span>
+                  <input id="setting-dnd-enabled" type="checkbox" role="switch">
+                  <span class="switch-ui" aria-hidden="true"></span>
+                </label>
+                <div class="form-grid two">
+                  <label class="field"><span class="field-label">From</span><input id="setting-dnd-start" type="time"></label>
+                  <label class="field"><span class="field-label">Until</span><input id="setting-dnd-end" type="time"></label>
+                </div>
+                <fieldset class="field">
+                  <legend class="field-label">Quiet on</legend>
+                  <div class="day-grid" id="dnd-days">
+                    <label class="day-chip"><input type="checkbox" name="dndDay" value="1"><span>Mon</span></label>
+                    <label class="day-chip"><input type="checkbox" name="dndDay" value="2"><span>Tue</span></label>
+                    <label class="day-chip"><input type="checkbox" name="dndDay" value="3"><span>Wed</span></label>
+                    <label class="day-chip"><input type="checkbox" name="dndDay" value="4"><span>Thu</span></label>
+                    <label class="day-chip"><input type="checkbox" name="dndDay" value="5"><span>Fri</span></label>
+                    <label class="day-chip"><input type="checkbox" name="dndDay" value="6"><span>Sat</span></label>
+                    <label class="day-chip"><input type="checkbox" name="dndDay" value="0"><span>Sun</span></label>
+                  </div>
+                </fieldset>
+              </section>
+            </div>
+
+            <div class="blocker" id="settings-errors" role="alert" hidden></div>
+
+            <footer class="settings-footer">
+              <div class="data-tools">
+                <button class="quiet-button" id="export-data" type="button">Export backup</button>
+                <button class="quiet-button" id="import-data" type="button">Import backup</button>
+                <button class="quiet-button" id="choose-sync-folder" type="button">Choose sync folder</button>
+                <button class="quiet-button" id="sync-now" type="button">Sync now</button>
+                <button class="danger-text-button" id="quit-app" type="button">Quit Remind Buddy</button>
+              </div>
+              <div class="settings-save">
+                <span class="form-status" id="settings-status"></span>
+                <button class="primary-button" id="save-settings" type="submit">Save settings</button>
+              </div>
+            </footer>
+            <div class="data-details">
+              <p id="data-path">Data folder: —</p>
+              <p id="sync-path" hidden></p>
+              <ul class="warning-list" id="data-warnings"></ul>
+            </div>
+          </form>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <dialog class="modal template-modal" id="template-dialog" aria-labelledby="template-heading">
+    <div class="modal-head">
+      <div>
+        <p class="eyebrow">Start with a rhythm</p>
+        <h2 id="template-heading">Add a reminder</h2>
+        <p class="modal-copy">Every template is a starting point — change anything after adding it.</p>
+      </div>
+      <button class="icon-button" type="button" data-close-dialog="template-dialog" aria-label="Close">×</button>
+    </div>
+    <div class="template-grid" id="template-grid"></div>
+  </dialog>
+
+  <dialog class="modal confirm-modal" id="confirm-dialog" aria-labelledby="confirm-heading">
+    <div class="confirm-icon" aria-hidden="true">!</div>
+    <h2 id="confirm-heading">Are you sure?</h2>
+    <p id="confirm-message"></p>
+    <div class="modal-actions">
+      <button class="quiet-button" id="confirm-cancel" type="button">Cancel</button>
+      <button class="danger-button" id="confirm-ok" type="button">Delete</button>
+    </div>
+  </dialog>
+
+  <dialog class="modal character-modal" id="character-dialog" aria-labelledby="character-dialog-heading">
+    <div class="modal-head">
+      <div>
+        <p class="eyebrow">New cast member</p>
+        <h2 id="character-dialog-heading">Add a character</h2>
+        <p class="modal-copy">Choose a sprite sheet. The default layout is a 6 × 6 grid.</p>
+      </div>
+      <button class="icon-button" type="button" data-close-dialog="character-dialog" aria-label="Close">×</button>
+    </div>
+    <form id="character-form" class="stack-form" novalidate>
+      <label class="field"><span class="field-label">Name</span><input id="character-name" type="text" maxlength="60" placeholder="Pixel Pals" required></label>
+      <label class="field"><span class="field-label">Sprite sheet (sheet.png)</span><input id="character-sheet-file" type="file" accept="image/png,image/webp,image/jpeg" required></label>
+      <label class="field"><span class="field-label">Config (character.json, optional)</span><input id="character-config-file" type="file" accept="application/json,.json"><span class="field-help">Rows, frames, facing, scale, and fps. Leave empty for the default 6-row layout.</span></label>
+      <div class="blocker" id="character-errors" role="alert" hidden></div>
+      <div class="modal-actions">
+        <button class="quiet-button" type="button" data-close-dialog="character-dialog">Cancel</button>
+        <button class="primary-button" id="character-submit" type="submit">Add character</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="modal editor-modal" id="editor-dialog" aria-labelledby="editor-heading">
+    <div class="editor-shell">
+      <header class="editor-head">
+        <div>
+          <p class="eyebrow" id="editor-eyebrow">New reminder</p>
+          <h2 id="editor-heading">Add reminder</h2>
+          <p class="modal-copy" id="editor-subcopy">Set the rhythm, the words, and the reaction.</p>
+        </div>
+        <button class="icon-button" id="editor-close" type="button" aria-label="Close editor">×</button>
+      </header>
+
+      <div class="editor-body">
+        <form id="editor-form" class="editor-form" novalidate>
+          <div class="blocker" id="editor-errors" role="alert" hidden></div>
+
+          <section class="form-section">
+            <div class="section-title"><h3>Basics</h3><span>What is this nudge about?</span></div>
+            <div class="form-grid two">
+              <label class="field span-2"><span class="field-label">Title</span><input id="edit-title" type="text" maxlength="100" required placeholder="Take medicine"></label>
+              <label class="field"><span class="field-label">Category</span><input id="edit-category" type="text" maxlength="40" list="category-suggestions" placeholder="Health"><datalist id="category-suggestions"></datalist></label>
+              <label class="field"><span class="field-label">Icon</span><input id="edit-icon" type="text" maxlength="8" placeholder="🔔"></label>
+              <label class="field"><span class="field-label">Accent color</span><input id="edit-color" type="color" value="#17a9df"></label>
+              <label class="field"><span class="field-label">Reminder type</span>
+                <select id="edit-type">
+                  <option value="yesno">Yes / No question</option>
+                  <option value="confirm">Confirm with Done / Later</option>
+                  <option value="choice">Choice (2–4 buttons)</option>
+                  <option value="timer">Timer with a countdown</option>
+                  <option value="note">Message only</option>
+                </select>
+              </label>
+              <label class="field"><span class="field-label">Priority</span>
+                <select id="edit-priority">
+                  <option value="normal">Normal</option>
+                  <option value="high">High — stays until answered</option>
+                </select>
+              </label>
+              <label class="switch-row compact" for="edit-enabled">
+                <span class="switch-copy"><span class="switch-title">Reminder enabled</span></span>
+                <input id="edit-enabled" type="checkbox" role="switch">
+                <span class="switch-ui" aria-hidden="true"></span>
+              </label>
+            </div>
+          </section>
+
+          <section class="form-section">
+            <div class="section-title"><h3>Questions &amp; messages</h3><span>One variation per line. A random line is used each time.</span></div>
+            <div class="placeholder-help"><code>{title}</code><code>{note}</code><code>{date}</code><code>{weekday}</code><code>{snooze}</code><code>{count}</code></div>
+            <label class="field"><span class="field-label">Question / message</span><textarea id="edit-question" rows="2" placeholder="Did you drink water?"></textarea></label>
+            <div class="form-grid two">
+              <label class="field"><span class="field-label">Positive reaction</span><textarea id="edit-positive" rows="2"></textarea></label>
+              <label class="field"><span class="field-label">Negative reaction</span><textarea id="edit-negative" rows="2"></textarea></label>
+              <label class="field"><span class="field-label">Neutral reaction</span><textarea id="edit-neutral" rows="2"></textarea></label>
+              <label class="field"><span class="field-label">Snooze reaction</span><textarea id="edit-snooze" rows="2"></textarea></label>
+              <label class="field span-2"><span class="field-label">Skipped-until-tomorrow reaction</span><textarea id="edit-skipped" rows="2"></textarea></label>
+            </div>
+            <div class="form-grid two" id="pomodoro-messages" hidden>
+              <label class="field"><span class="field-label">Pomodoro focus message</span><textarea id="edit-pomodoro-focus" rows="2"></textarea></label>
+              <label class="field"><span class="field-label">Pomodoro break message</span><textarea id="edit-pomodoro-break" rows="2"></textarea></label>
+            </div>
+            <label class="field"><span class="field-label">Note / details <span class="field-hint">shown in the bubble via {note}</span></span><textarea id="edit-notes" rows="2" maxlength="1000" placeholder="Take with water."></textarea></label>
+          </section>
+
+          <section class="form-section" id="buttons-section">
+            <div class="section-title"><h3>Buttons</h3><span>Labels, actions, and the reaction each one triggers.</span></div>
+            <div class="button-editor" id="edit-buttons"></div>
+            <button class="quiet-button add-button-row" id="add-editor-button" type="button">+ Add another button</button>
+          </section>
+
+          <section class="form-section">
+            <div class="section-title"><h3>Reactions &amp; follow-up</h3><span>What happens after an answer, or no answer.</span></div>
+            <div class="form-grid two">
+              <label class="field"><span class="field-label">Special animation</span>
+                <select id="edit-special">
+                  <option value="none">None — use the default reaction</option>
+                  <option value="drinking">Drinking (water template)</option>
+                  <option value="exercise">Exercise (stretch, walk)</option>
+                </select>
+                <span class="field-help">Falls back to the happy reaction if the character has no matching row.</span>
+              </label>
+              <label class="field"><span class="field-label">If I don't answer</span>
+                <select id="edit-timeout-action">
+                  <option value="negative">Treat it as No</option>
+                  <option value="snooze">Snooze it</option>
+                  <option value="dismiss">Dismiss silently</option>
+                </select>
+              </label>
+              <label class="field" id="timer-minutes-field" hidden><span class="field-label">Timer length (minutes)</span><input id="edit-timer-minutes" type="number" min="1" max="180" step="1"></label>
+              <label class="field" id="auto-dismiss-field" hidden><span class="field-label">Auto-dismiss after (seconds)</span><input id="edit-auto-dismiss" type="number" min="3" max="120" step="1"></label>
+              <label class="field"><span class="field-label">Snooze length (minutes)</span><input id="edit-snooze-minutes" type="number" min="1" max="120" step="1"></label>
+              <label class="field"><span class="field-label">Maximum snoozes</span><input id="edit-snooze-max" type="number" min="0" max="10" step="1"></label>
+              <label class="field"><span class="field-label">If I keep snoozing</span>
+                <select id="edit-escalate">
+                  <option value="none">No change</option>
+                  <option value="frequent">Come back sooner</option>
+                  <option value="bigger">Make the character bigger</option>
+                </select>
+              </label>
+              <label class="switch-row compact" for="edit-log">
+                <span class="switch-copy"><span class="switch-title">Log answers in history</span></span>
+                <input id="edit-log" type="checkbox" role="switch">
+                <span class="switch-ui" aria-hidden="true"></span>
+              </label>
+              <label class="field"><span class="field-label">Daily goal <span class="field-hint">optional</span></span><input id="edit-daily-goal" type="number" min="1" max="50" step="1" placeholder="No goal"></label>
+            </div>
+          </section>
+
+          <section class="form-section">
+            <div class="section-title"><h3>Character &amp; sound</h3><span>Who shows up, how big, and how they sound.</span></div>
+            <div class="form-grid two">
+              <label class="field"><span class="field-label">Character</span>
+                <select id="edit-character-mode">
+                  <option value="default">Use the default character</option>
+                  <option value="specific">Choose a specific character</option>
+                  <option value="random">Random each time</option>
+                </select>
+              </label>
+              <label class="field" id="edit-character-id-field" hidden><span class="field-label">Which character</span><select id="edit-character-id"></select></label>
+              <label class="field"><span class="field-label">Size for this reminder</span>
+                <div class="range-row"><input id="edit-character-scale" type="range" min="50" max="200" step="5"><span id="edit-character-scale-value">100%</span></div>
+              </label>
+              <label class="field"><span class="field-label">Sound</span>
+                <select id="edit-sound">
+                  <option value="default">Default chime</option>
+                  <option value="chime">Soft chime</option>
+                  <option value="none">Silent</option>
+                  <option value="custom">Custom file…</option>
+                </select>
+              </label>
+            </div>
+            <div class="custom-sound-row" id="custom-sound-row" hidden>
+              <button class="quiet-button" id="choose-sound" type="button">Choose sound file</button>
+              <span class="custom-sound-name" id="custom-sound-name">No file selected</span>
+            </div>
+          </section>
+
+          <section class="form-section">
+            <div class="section-title"><h3>Schedule</h3><span>When and how often this reminder appears.</span></div>
+            <div class="form-grid two">
+              <label class="field"><span class="field-label">Repeats</span>
+                <select id="edit-schedule-kind">
+                  <option value="interval">Every N minutes / hours</option>
+                  <option value="times">Fixed times of day</option>
+                  <option value="monthly">Monthly on a day</option>
+                  <option value="once">One-time date and time</option>
+                  <option value="startup">After Remind Buddy starts</option>
+                  <option value="idle">When I've been idle</option>
+                  <option value="pomodoro">Pomodoro focus cycle</option>
+                </select>
+              </label>
+              <div class="schedule-group" data-schedule="interval">
+                <label class="field"><span class="field-label">Interval (minutes)</span><input id="edit-interval" type="number" min="5" max="10080" step="5"></label>
+              </div>
+              <div class="schedule-group" data-schedule="times" hidden>
+                <label class="field"><span class="field-label">Times of day</span><input id="edit-times" type="text" placeholder="08:00, 14:00, 21:30"><span class="field-help">Comma-separated 24-hour times. Up to 12.</span></label>
+              </div>
+              <div class="schedule-group" data-schedule="monthly" hidden>
+                <div class="form-grid two">
+                  <label class="field"><span class="field-label">Day of month</span><input id="edit-monthly-day" type="number" min="1" max="31" step="1"></label>
+                  <label class="field"><span class="field-label">Time</span><input id="edit-monthly-time" type="time"></label>
+                </div>
+              </div>
+              <div class="schedule-group" data-schedule="once" hidden>
+                <div class="form-grid two">
+                  <label class="field"><span class="field-label">Date and time</span><input id="edit-once-at" type="datetime-local"></label>
+                  <label class="switch-row compact" for="edit-repeat-yearly"><span class="switch-copy"><span class="switch-title">Repeat yearly</span></span><input id="edit-repeat-yearly" type="checkbox" role="switch"><span class="switch-ui" aria-hidden="true"></span></label>
+                </div>
+              </div>
+              <div class="schedule-group" data-schedule="startup" hidden>
+                <label class="field"><span class="field-label">Delay after startup (minutes)</span><input id="edit-startup-delay" type="number" min="0" max="1440" step="1"></label>
+              </div>
+              <div class="schedule-group" data-schedule="idle" hidden>
+                <label class="field"><span class="field-label">Idle time before reminding (minutes)</span><input id="edit-idle-minutes" type="number" min="1" max="1440" step="1"></label>
+              </div>
+              <div class="schedule-group" data-schedule="pomodoro" hidden>
+                <div class="form-grid two">
+                  <label class="field"><span class="field-label">Focus (minutes)</span><input id="edit-focus-minutes" type="number" min="5" max="180" step="1"></label>
+                  <label class="field"><span class="field-label">Break (minutes)</span><input id="edit-break-minutes" type="number" min="1" max="60" step="1"></label>
+                </div>
+              </div>
+            </div>
+
+            <div id="schedule-active-window">
+              <div class="form-grid two">
+                <label class="field"><span class="field-label">Active from</span><input id="edit-active-start" type="time"></label>
+                <label class="field"><span class="field-label">Active until</span><input id="edit-active-end" type="time"></label>
+              </div>
+              <fieldset class="field">
+                <legend class="field-label">On these days</legend>
+                <div class="day-grid" id="edit-days">
+                  <label class="day-chip"><input type="checkbox" name="editDay" value="1"><span>Mon</span></label>
+                  <label class="day-chip"><input type="checkbox" name="editDay" value="2"><span>Tue</span></label>
+                  <label class="day-chip"><input type="checkbox" name="editDay" value="3"><span>Wed</span></label>
+                  <label class="day-chip"><input type="checkbox" name="editDay" value="4"><span>Thu</span></label>
+                  <label class="day-chip"><input type="checkbox" name="editDay" value="5"><span>Fri</span></label>
+                  <label class="day-chip"><input type="checkbox" name="editDay" value="6"><span>Sat</span></label>
+                  <label class="day-chip"><input type="checkbox" name="editDay" value="0"><span>Sun</span></label>
+                </div>
+              </fieldset>
+            </div>
+
+            <div class="form-grid two">
+              <label class="field"><span class="field-label">Start date <span class="field-hint">optional</span></span><input id="edit-start-date" type="date"></label>
+              <label class="field"><span class="field-label">End date <span class="field-hint">optional</span></span><input id="edit-end-date" type="date"></label>
+              <label class="field"><span class="field-label">Missed reminders</span>
+                <select id="edit-missed-policy">
+                  <option value="inherit">Use the global setting</option>
+                  <option value="show">Show late with a missed badge</option>
+                  <option value="skip">Skip silently</option>
+                </select>
+              </label>
+            </div>
+            <div class="check-row">
+              <label class="check-chip"><input id="edit-skip-paused" type="checkbox"><span>Skip while paused</span></label>
+              <label class="check-chip"><input id="edit-skip-dnd" type="checkbox"><span>Skip during Do Not Disturb</span></label>
+              <label class="check-chip"><input id="edit-skip-locked" type="checkbox"><span>Skip when screen locked</span></label>
+            </div>
+          </section>
+
+          <footer class="editor-actions">
+            <button class="danger-text-button" id="editor-delete" type="button" hidden>Delete reminder</button>
+            <div class="toolbar-spacer"></div>
+            <button class="quiet-button" id="editor-cancel" type="button">Cancel</button>
+            <button class="quiet-button" id="editor-test" type="button">Test now</button>
+            <button class="primary-button" id="editor-save" type="submit">Save reminder</button>
+          </footer>
+        </form>
+
+        <aside class="editor-preview" aria-label="Live reminder preview">
+          <div class="preview-heading"><p class="eyebrow">Live preview</p><span id="preview-test-chip" class="mini-chip" hidden>Draft</span></div>
+          <div class="preview-stage">
+            <div class="preview-bubble" id="preview-bubble">
+              <div class="preview-bubble-head">
+                <span class="preview-bubble-icon" id="preview-icon">🔔</span>
+                <div><p class="preview-kicker" id="preview-kicker">Reminder</p><h4 id="preview-question">Your question appears here.</h4></div>
+              </div>
+              <p class="preview-note" id="preview-note" hidden></p>
+              <div class="preview-buttons" id="preview-buttons"></div>
+              <p class="preview-wait" id="preview-wait">Waits 60s for an answer</p>
+            </div>
+            <div class="preview-character">
+              <div class="preview-character-floor" aria-hidden="true"></div>
+              <canvas id="editor-character-canvas" width="209" height="209" aria-label="Selected character"></canvas>
+            </div>
+          </div>
+          <p class="preview-schedule" id="preview-schedule">Schedule summary</p>
+          <div class="preview-character-name" id="preview-character-name">Character: default</div>
+          <ul class="preview-reactions" id="preview-reactions"></ul>
+          <p class="preview-footnote">Test now plays the full walk-in, bubble, and reaction without logging a result.</p>
+        </aside>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="character-engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

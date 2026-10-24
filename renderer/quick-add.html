@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+  <title>Quick add · Remind Buddy</title>
+  <link rel="stylesheet" href="quick-add.css">
+</head>
+<body>
+  <main class="quick-add">
+    <header class="quick-head">
+      <img class="quick-icon" src="../assets/icon.png" alt="" width="34" height="34">
+      <div class="quick-copy">
+        <h1>Quick add reminder</h1>
+        <p>Type a time and what to remember.</p>
+      </div>
+      <button class="close-button" id="quick-close" type="button" aria-label="Close quick add">×</button>
+    </header>
+
+    <label class="sr-only" for="quick-input">Reminder text</label>
+    <div class="input-shell" id="input-shell">
+      <span class="input-bolt" aria-hidden="true">⚡</span>
+      <input id="quick-input" type="text" maxlength="240" autocomplete="off" spellcheck="true"
+        placeholder="in 30 min call mom" aria-describedby="preview-schedule quick-status">
+      <button class="clear-button" id="quick-clear" type="button" aria-label="Clear text" hidden>×</button>
+    </div>
+
+    <section class="preview" id="quick-preview" aria-live="polite">
+      <div class="preview-row">
+        <span class="preview-badge" id="preview-badge" aria-hidden="true">⏰</span>
+        <div class="preview-copy">
+          <strong id="preview-title">Try “in 30 min call mom”</strong>
+          <p id="preview-schedule">I’ll read the time, then add a simple Done / Later reminder.</p>
+        </div>
+      </div>
+      <p class="preview-note" id="preview-note">You can edit every detail after adding it.</p>
+    </section>
+
+    <div class="examples" aria-label="Examples">
+      <span class="examples-label">Try</span>
+      <button type="button" data-example="in 30 min call mom">in 30 min call mom</button>
+      <button type="button" data-example="tomorrow 9am pay rent">tomorrow 9am pay rent</button>
+      <button type="button" data-example="every day 8am take vitamins">every day 8am take vitamins</button>
+    </div>
+
+    <footer class="quick-foot">
+      <span class="key-hint"><kbd>Enter</kbd> add · <kbd>Esc</kbd> close</span>
+      <span class="status" id="quick-status" role="status"></span>
+      <button class="save-button" id="quick-save" type="button" disabled>Add reminder</button>
+    </footer>
+  </main>
+  <script src="quick-add.js"></script>
+</body>
+</html>

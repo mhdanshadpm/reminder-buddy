@@ -1,0 +1,71 @@
+appId: com.remindbuddy.desktop
+productName: Remind Buddy
+copyright: Copyright © 2026 Remind Buddy
+
+directories:
+  buildResources: build
+  output: release
+
+files:
+  - main.js
+  - preload.js
+  - lib/**/*
+  - renderer/**/*
+  - assets/**/*
+  - package.json
+  - "!test/**/*"
+  - "!scripts/**/*"
+
+asar: true
+
+win:
+  icon: assets/icon.ico
+  target:
+    - target: nsis
+      arch:
+        - x64
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Remind Buddy
+  uninstallDisplayName: Remind Buddy
+
+mac:
+  icon: assets/icon.icns
+  category: public.app-category.productivity
+  darkModeSupport: true
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+  extendInfo:
+    LSUIElement: true
+
+dmg:
+  title: Remind Buddy
+  iconSize: 110
+  contents:
+    - x: 130
+      y: 220
+    - x: 410
+      y: 220
+      type: link
+      path: /Applications
+
+linux:
+  icon: build/icons
+  executableName: remind-buddy
+  category: Utility
+  synopsis: Friendly desktop reminders
+  description: A small animated buddy that keeps your reminders on schedule.
+  target:
+    - target: AppImage
+      arch:
+        - x64
+
+artifactName: ${productName}-${version}-${os}-${arch}.${ext}
